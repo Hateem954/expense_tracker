@@ -547,9 +547,12 @@
 // }
 
 import 'package:expense_tracker/AuthService/activitywrapper.dart';
+import 'package:expense_tracker/screens/expense_screen.dart';
+import 'package:expense_tracker/screens/login_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -661,6 +664,10 @@ class _HomeScreenState extends State<HomeScreen> {
           child: FloatingActionButton(
             onPressed: () {
               // Add Transaction Screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ExpenseScreen()),
+              );
             },
             backgroundColor: const Color(0xff1D2433),
             elevation: 8,
@@ -709,7 +716,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     _menuItem(Icons.currency_exchange, "Currency"),
                     _menuItem(Icons.settings, "Settings"),
                     const Divider(),
-                    _menuItem(Icons.logout, "Logout", isDestructive: true),
+                    // _menuItem(Icons.logout, "Logout", isDestructive: true),
+                    _menuItem(
+                      Icons.logout,
+                      "Logout",
+                      isDestructive: true,
+                      onPressed: () async {
+                        // clear session
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.remove("uid");
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -732,14 +756,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _menuItem(IconData icon, String title, {bool isDestructive = false}) {
+  // Widget _menuItem(IconData icon, String title, {bool isDestructive = false}) {
+  //   return InkWell(
+  //     onTap: () {
+  //       Navigator.pop(context);
+
+  //       // handle actions here
+  //       if (title == "Logout") {
+  //         // logout logic
+  //       }
+  //     },
+  //     child: Padding(
+  //       padding: EdgeInsets.symmetric(vertical: 12.h),
+  //       child: Row(
+  //         children: [
+  //           Icon(
+  //             icon,
+  //             size: 22,
+  //             color: isDestructive ? Colors.red : Colors.black87,
+  //           ),
+  //           SizedBox(width: 12.w),
+  //           Text(
+  //             title,
+  //             style: TextStyle(
+  //               fontSize: 16.sp,
+  //               color: isDestructive ? Colors.red : Colors.black87,
+  //               fontWeight: FontWeight.w500,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Widget _menuItem(
+    IconData icon,
+    String title, {
+    bool isDestructive = false,
+    VoidCallback? onPressed,
+  }) {
     return InkWell(
       onTap: () {
         Navigator.pop(context);
 
-        // handle actions here
-        if (title == "Logout") {
-          // logout logic
+        // call external action
+        if (onPressed != null) {
+          onPressed();
         }
       },
       child: Padding(
@@ -846,7 +909,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ),
                   ],
                 ),
-                SizedBox(width: 81.w),
+                SizedBox(width: 99.w),
                 Container(
                   height: 50.h,
                   width: 50.w,
