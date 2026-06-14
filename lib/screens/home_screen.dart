@@ -546,9 +546,14 @@
 //   }
 // }
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/AuthService/activitywrapper.dart';
+import 'package:expense_tracker/providers/currency_services.dart';
+import 'package:expense_tracker/screens/currency_screen.dart';
 import 'package:expense_tracker/screens/expense_screen.dart';
 import 'package:expense_tracker/screens/login_screen.dart';
+import 'package:expense_tracker/screens/profile_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -563,6 +568,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
+  String selectedCurrency = "PKR";
+  String userName = "Loading...";
+  double totalIncome = 0;
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrency();
+    _loadUserName();
+    _loadUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -576,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _homeTab(),
             _transactionsTab(),
             _analyticsTab(),
-            _profileTab(),
+            ProfileScreen(),
           ],
         ),
 
@@ -713,7 +728,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _menuItem(Icons.person, "Profile"),
                     _menuItem(Icons.account_balance_wallet, "Switch Account"),
-                    _menuItem(Icons.currency_exchange, "Currency"),
+                    // _menuItem(Icons.currency_exchange, "Currency"),
+                    _menuItem(
+                      Icons.currency_exchange,
+                      "Currency",
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CurrencyScreen(),
+                          ),
+                        );
+
+                        if (result != null) {
+                          _loadCurrency();
+                        }
+                      },
+                    ),
                     _menuItem(Icons.settings, "Settings"),
                     const Divider(),
                     // _menuItem(Icons.logout, "Logout", isDestructive: true),
@@ -829,6 +860,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        userName = doc.data()?["name"] ?? "No Name";
+      });
+    }
+  }
+
   Widget _navItem(IconData icon, int index) {
     final isSelected = currentIndex == index;
 
@@ -860,72 +908,41 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // widget of home page
   Widget _homeTab() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// HEADER
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Text(
-                    //   "Good Morning!",
-                    //   style: TextStyle(color: Colors.grey, fontSize: 16.sp),
-                    // ),
-                    Text(
-                      "${getGreeting()} 👋",
-                      style: TextStyle(color: Colors.grey, fontSize: 16.sp),
-                    ),
-                    SizedBox(height: 5.h),
-
-                    Text(
-                      "UserName",
-                      style: TextStyle(
-                        fontSize: 26.sp,
-                        fontWeight: FontWeight.bold,
+    return RefreshIndicator(
+      onRefresh: _refreshHome,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// HEADER
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${getGreeting()} 👋",
+                        style: TextStyle(color: Colors.grey, fontSize: 16.sp),
                       ),
-                    ),
-                    // GestureDetector(
-                    //   onTap: _showProfileMenu,
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         "UserName",
-                    //         style: TextStyle(
-                    //           fontSize: 26.sp,
-                    //           fontWeight: FontWeight.bold,
-                    //         ),
-                    //       ),
-                    //       SizedBox(width: 6.w),
-                    //       const Icon(Icons.keyboard_arrow_down_rounded),
-                    //     ],
-                    //   ),
-                    // ),
-                  ],
-                ),
-                SizedBox(width: 99.w),
-                Container(
-                  height: 50.h,
-                  width: 50.w,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 10.r),
+                      SizedBox(height: 5.h),
+
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: 26.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
-                  child: const Icon(Icons.notifications_none),
-                ),
-                SizedBox(width: 10.w),
-                GestureDetector(
-                  onTap: _showProfileMenu,
-                  child: Container(
+                  SizedBox(width: 60.w),
+                  Container(
                     height: 50.h,
                     width: 50.w,
                     decoration: BoxDecoration(
@@ -935,99 +952,143 @@ class _HomeScreenState extends State<HomeScreen> {
                         BoxShadow(color: Colors.black12, blurRadius: 10.r),
                       ],
                     ),
-                    child: const Icon(Icons.menu),
+                    child: const Icon(Icons.notifications_none),
                   ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 25.h),
-
-            /// BALANCE CARD
-            _balanceCard(),
-
-            SizedBox(height: 25.h),
-
-            Text(
-              "Transactions Overview",
-              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-            ),
-
-            SizedBox(height: 15.h),
-
-            /// INCOME + EXPENSE
-            Row(
-              children: [
-                Expanded(
-                  child: _overviewCard(
-                    icon: Icons.arrow_downward,
-                    color: Colors.green,
-                    title: "Income",
-                    percentage: "+24%",
-                    amount: "₹50,000",
+                  SizedBox(width: 10.w),
+                  GestureDetector(
+                    onTap: _showProfileMenu,
+                    child: Container(
+                      height: 50.h,
+                      width: 50.w,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black12, blurRadius: 10.r),
+                        ],
+                      ),
+                      child: const Icon(Icons.menu),
+                    ),
                   ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _overviewCard(
-                    icon: Icons.arrow_upward,
-                    color: Colors.orange,
-                    title: "Expense",
-                    percentage: "-42%",
-                    amount: "₹20,000",
+                ],
+              ),
+
+              SizedBox(height: 25.h),
+
+              _balanceCard(),
+
+              SizedBox(height: 25.h),
+
+              Text(
+                "Transactions Overview",
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              ),
+
+              SizedBox(height: 15.h),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _overviewCard(
+                      icon: Icons.arrow_downward,
+                      color: Colors.green,
+                      title: "Income",
+                      percentage: "+24%",
+                      amount:
+                          " ${CurrencyService.getCurrencySymbol(selectedCurrency)} 50000",
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: _overviewCard(
+                      icon: Icons.arrow_upward,
+                      color: Colors.orange,
+                      title: "Expense",
+                      percentage: "-42%",
+                      amount:
+                          " ${CurrencyService.getCurrencySymbol(selectedCurrency)} 20000",
+                    ),
+                  ),
+                ],
+              ),
 
-            SizedBox(height: 15.h),
+              SizedBox(height: 15.h),
 
-            /// SAVINGS
-            _savingsCard(),
+              _savingsCard(),
 
-            SizedBox(height: 30.h),
+              SizedBox(height: 30.h),
 
-            Text(
-              "Analytics Dashboard",
-              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-            ),
+              Text(
+                "Analytics Dashboard",
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              ),
 
-            SizedBox(height: 15.h),
+              SizedBox(height: 15.h),
 
-            /// MONTHLY TREND
-            _monthlySpendingChart(),
+              _monthlySpendingChart(),
 
-            SizedBox(height: 20.h),
+              SizedBox(height: 20.h),
 
-            /// CATEGORY CHART
-            _categoryChart(),
+              _categoryChart(),
 
-            SizedBox(height: 30.h),
+              SizedBox(height: 30.h),
 
-            Text(
-              "Recent Transactions",
-              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-            ),
+              Text(
+                "Recent Transactions",
+                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              ),
 
-            SizedBox(height: 15.h),
+              SizedBox(height: 15.h),
 
-            _transactionTile(
-              title: "Dribbble Pro",
-              date: "18 Sep 2024",
-              amount: "- ₹145",
-              icon: Icons.design_services,
-            ),
+              _transactionTile(
+                title: "Dribbble Pro",
+                date: "18 Sep 2024",
+                amount:
+                    " ${CurrencyService.getCurrencySymbol(selectedCurrency)} -145",
+                icon: Icons.design_services,
+              ),
 
-            _transactionTile(
-              title: "Figma",
-              date: "14 Sep 2024",
-              amount: "- ₹46",
-              icon: Icons.brush,
-            ),
-          ],
+              _transactionTile(
+                title: "Figma",
+                date: "14 Sep 2024",
+                amount:
+                    " ${CurrencyService.getCurrencySymbol(selectedCurrency)} -46",
+                icon: Icons.brush,
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _loadCurrency() async {
+    final currency = await CurrencyService.getCurrency();
+
+    setState(() {
+      selectedCurrency = currency;
+    });
+  }
+
+  // load user data
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .get();
+
+    if (doc.exists) {
+      final data = doc.data() ?? {};
+
+      setState(() {
+        userName = data["name"] ?? "No Name";
+        totalIncome = (data["monthlyIncome"] ?? 0).toDouble();
+      });
+    }
   }
 
   Widget _balanceCard() {
@@ -1045,7 +1106,8 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "₹54,800",
+            // "₹54,800",
+            "${CurrencyService.getCurrencySymbol(selectedCurrency)} $totalIncome",
             style: TextStyle(
               color: Colors.white,
               fontSize: 34.sp,
@@ -1053,6 +1115,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          // Text(
+          //   "${getCurrencySymbol(selectedCurrency)}54,800",
+          //   style: TextStyle(
           SizedBox(height: 5.h),
 
           Text(
@@ -1139,8 +1204,8 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Text("Savings", style: TextStyle(fontSize: 16.sp)),
               Text(
-                "₹30,000",
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                "${CurrencyService.getCurrencySymbol(selectedCurrency)} 30000",
+                style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1226,6 +1291,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // refresh home screen function
+  Future<void> _refreshHome() async {
+    await _loadUserName();
+    await _loadCurrency();
+    await _loadUserData();
+  }
+
+  // transaction title widget
   Widget _transactionTile({
     required String title,
     required String date,
