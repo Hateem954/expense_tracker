@@ -551,6 +551,7 @@ import 'package:expense_tracker/AuthService/activitywrapper.dart';
 import 'package:expense_tracker/providers/currency_services.dart';
 import 'package:expense_tracker/screens/currency_screen.dart';
 import 'package:expense_tracker/screens/expense_screen.dart';
+import 'package:expense_tracker/screens/income_history_screen.dart';
 import 'package:expense_tracker/screens/login_screen.dart';
 import 'package:expense_tracker/screens/profile_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -590,7 +591,9 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _homeTab(),
             _transactionsTab(),
-            _analyticsTab(),
+            ExpenseScreen(),
+            // _analyticsTab(),
+            IncomeHistoryScreen(),
             ProfileScreen(),
           ],
         ),
@@ -647,8 +650,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(width: 60),
 
-              _navItem(Icons.analytics_outlined, 2),
-              _navItem(Icons.person_outline, 3),
+              _navItem(Icons.analytics_outlined, 3),
+              _navItem(Icons.person_outline, 4),
             ],
           ),
         ),
@@ -677,12 +680,11 @@ class _HomeScreenState extends State<HomeScreen> {
           //   child: const Icon(Icons.add, size: 30, color: Colors.white),
           // ),
           child: FloatingActionButton(
+            heroTag: "home_fab",
             onPressed: () {
-              // Add Transaction Screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ExpenseScreen()),
-              );
+              setState(() {
+                currentIndex = 2;
+              });
             },
             backgroundColor: const Color(0xff1D2433),
             elevation: 8,
@@ -726,8 +728,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _menuItem(Icons.person, "Profile"),
-                    _menuItem(Icons.account_balance_wallet, "Switch Account"),
+                    // _menuItem(Icons.person, "Profile"),
+                    // _menuItem(Icons.account_balance_wallet, "Switch Account"),
                     // _menuItem(Icons.currency_exchange, "Currency"),
                     _menuItem(
                       Icons.currency_exchange,
