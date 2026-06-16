@@ -549,11 +549,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/AuthService/activitywrapper.dart';
 import 'package:expense_tracker/providers/currency_services.dart';
+import 'package:expense_tracker/screens/budgets_screen.dart';
 import 'package:expense_tracker/screens/currency_screen.dart';
 import 'package:expense_tracker/screens/expense_screen.dart';
 import 'package:expense_tracker/screens/income_history_screen.dart';
 import 'package:expense_tracker/screens/login_screen.dart';
 import 'package:expense_tracker/screens/profile_screen.dart';
+import 'package:expense_tracker/screens/create_budget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -583,117 +585,120 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return ActivityWrapper(
-      child: Scaffold(
-        backgroundColor: const Color(0xffF5F5F5),
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: const Color(0xffF5F5F5),
 
-        body: IndexedStack(
-          index: currentIndex,
-          children: [
-            _homeTab(),
-            _transactionsTab(),
-            ExpenseScreen(),
-            // _analyticsTab(),
-            IncomeHistoryScreen(),
-            ProfileScreen(),
-          ],
-        ),
-
-        //       bottomNavigationBar: BottomNavigationBar(
-        //         currentIndex: currentIndex,
-        //         onTap: (index) {
-        //           setState(() {
-        //             currentIndex = index;
-        //           });
-        //         },
-        //         type: BottomNavigationBarType.fixed,
-        //         selectedItemColor: Colors.black,
-        //         unselectedItemColor: Colors.grey,
-        //         backgroundColor: Colors.white,
-        //         elevation: 10,
-        //         items: const [
-        //           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        //           BottomNavigationBarItem(
-        //             icon: Icon(Icons.account_balance_wallet),
-        //             label: "Transactions",
-        //           ),
-        //           BottomNavigationBarItem(
-        //             icon: Icon(Icons.bar_chart),
-        //             label: "Analytics",
-        //           ),
-        //           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        //         ],
-        //       ),
-        //     ),
-        //   );
-        // }
-        bottomNavigationBar: Container(
-          height: 80,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 15,
-                offset: Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          body: IndexedStack(
+            index: currentIndex,
             children: [
-              _navItem(Icons.home_rounded, 0),
-              _navItem(Icons.account_balance_wallet_rounded, 1),
-
-              const SizedBox(width: 60),
-
-              _navItem(Icons.analytics_outlined, 3),
-              _navItem(Icons.person_outline, 4),
+              _homeTab(),
+              BudgetScreen(),
+              ExpenseScreen(),
+              // _analyticsTab(),
+              IncomeHistoryScreen(),
+              ProfileScreen(),
             ],
           ),
-        ),
 
-        floatingActionButton: Container(
-          height: 70,
-          width: 70,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: const Color(0xff1D2433),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(.2),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+          //       bottomNavigationBar: BottomNavigationBar(
+          //         currentIndex: currentIndex,
+          //         onTap: (index) {
+          //           setState(() {
+          //             currentIndex = index;
+          //           });
+          //         },
+          //         type: BottomNavigationBarType.fixed,
+          //         selectedItemColor: Colors.black,
+          //         unselectedItemColor: Colors.grey,
+          //         backgroundColor: Colors.white,
+          //         elevation: 10,
+          //         items: const [
+          //           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          //           BottomNavigationBarItem(
+          //             icon: Icon(Icons.account_balance_wallet),
+          //             label: "Transactions",
+          //           ),
+          //           BottomNavigationBarItem(
+          //             icon: Icon(Icons.bar_chart),
+          //             label: "Analytics",
+          //           ),
+          //           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          //         ],
+          //       ),
+          //     ),
+          //   );
+          // }
+          bottomNavigationBar: Container(
+            height: 80,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 15,
+                  offset: Offset(0, -2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _navItem(Icons.home_rounded, 0),
+                _navItem(Icons.account_balance_wallet_rounded, 1),
+
+                const SizedBox(width: 60),
+
+                _navItem(Icons.analytics_outlined, 3),
+                _navItem(Icons.person_outline, 4),
+              ],
+            ),
           ),
 
-          // child: FloatingActionButton(
-          //   elevation: 10,
-          //   backgroundColor: const Color(0xff1D2433),
-          //   onPressed: () {
-          //     // Add Transaction Screen
-          //   },
-          //   child: const Icon(Icons.add, size: 30, color: Colors.white),
-          // ),
-          child: FloatingActionButton(
-            heroTag: "home_fab",
-            onPressed: () {
-              setState(() {
-                currentIndex = 2;
-              });
-            },
-            backgroundColor: const Color(0xff1D2433),
-            elevation: 8,
-            shape: const CircleBorder(),
-            child: const Icon(Icons.add, size: 30, color: Colors.white),
+          floatingActionButton: Container(
+            height: 70,
+            width: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xff1D2433),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+
+            // child: FloatingActionButton(
+            //   elevation: 10,
+            //   backgroundColor: const Color(0xff1D2433),
+            //   onPressed: () {
+            //     // Add Transaction Screen
+            //   },
+            //   child: const Icon(Icons.add, size: 30, color: Colors.white),
+            // ),
+            child: FloatingActionButton(
+              heroTag: "home_fab",
+              onPressed: () {
+                setState(() {
+                  currentIndex = 2;
+                });
+              },
+              backgroundColor: const Color(0xff1D2433),
+              elevation: 8,
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add, size: 30, color: Colors.white),
+            ),
           ),
+
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
         ),
-
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );
   }
@@ -788,40 +793,6 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-
-  // Widget _menuItem(IconData icon, String title, {bool isDestructive = false}) {
-  //   return InkWell(
-  //     onTap: () {
-  //       Navigator.pop(context);
-
-  //       // handle actions here
-  //       if (title == "Logout") {
-  //         // logout logic
-  //       }
-  //     },
-  //     child: Padding(
-  //       padding: EdgeInsets.symmetric(vertical: 12.h),
-  //       child: Row(
-  //         children: [
-  //           Icon(
-  //             icon,
-  //             size: 22,
-  //             color: isDestructive ? Colors.red : Colors.black87,
-  //           ),
-  //           SizedBox(width: 12.w),
-  //           Text(
-  //             title,
-  //             style: TextStyle(
-  //               fontSize: 16.sp,
-  //               color: isDestructive ? Colors.red : Colors.black87,
-  //               fontWeight: FontWeight.w500,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _menuItem(
     IconData icon,
@@ -943,7 +914,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(width: 60.w),
+                  // SizedBox(width: 60.w),
+                  const Spacer(), // 🔥 pushes everything to the right
                   Container(
                     height: 50.h,
                     width: 50.w,
@@ -1343,17 +1315,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-  }
-
-  Widget _transactionsTab() {
-    return const Center(child: Text("Transactions"));
-  }
-
-  Widget _analyticsTab() {
-    return const Center(child: Text("Analytics"));
-  }
-
-  Widget _profileTab() {
-    return const Center(child: Text("Profile"));
   }
 }

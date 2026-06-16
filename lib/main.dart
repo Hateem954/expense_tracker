@@ -31,6 +31,7 @@
 //   }
 // }
 
+import 'package:expense_tracker/providers/currency_services.dart';
 import 'package:expense_tracker/screens/home_screen.dart';
 import 'package:expense_tracker/screens/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -50,7 +51,7 @@ void main() async {
   await Firebase.initializeApp();
 
   await FirebaseAuth.instance.authStateChanges().first;
-
+  await CurrencyService.initCurrency(); // 🔥 important
   runApp(const MyApp());
 }
 
