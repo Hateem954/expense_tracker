@@ -32,12 +32,14 @@
 // }
 
 import 'package:expense_tracker/providers/currency_services.dart';
+import 'package:expense_tracker/providers/theme_provider.dart';
 import 'package:expense_tracker/screens/home_screen.dart';
 import 'package:expense_tracker/screens/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // void main() async {
@@ -52,7 +54,12 @@ void main() async {
 
   await FirebaseAuth.instance.authStateChanges().first;
   await CurrencyService.initCurrency(); // 🔥 important
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -77,31 +84,71 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, __) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
+        // return MaterialApp(
+        //   debugShowCheckedModeBanner: false,
 
-          /// 🚀 Decide first screen based on login session
-          home: FutureBuilder<Widget>(
-            future: _getStartScreen(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  backgroundColor: Colors.black,
-                  body: Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-                );
-              }
+        //   /// 🚀 Decide first screen based on login session
+        //   home: FutureBuilder<Widget>(
+        //     future: _getStartScreen(),
+        //     builder: (context, snapshot) {
+        //       if (snapshot.connectionState == ConnectionState.waiting) {
+        //         return const Scaffold(
+        //           backgroundColor: Colors.black,
+        //           body: Center(
+        //             child: CircularProgressIndicator(color: Colors.white),
+        //           ),
+        //         );
+        //       }
 
-              if (snapshot.hasError) {
-                return const Scaffold(
-                  body: Center(child: Text("Something went wrong")),
-                );
-              }
+        //       if (snapshot.hasError) {
+        //         return const Scaffold(
+        //           body: Center(child: Text("Something went wrong")),
+        //         );
+        //       }
 
-              return snapshot.data ?? const SplashScreen();
-            },
-          ),
+        //       return snapshot.data ?? const SplashScreen();
+        //     },
+        //   ),
+        // );
+
+        return Consumer<ThemeProvider>(
+          builder: (context, themeProvider, child) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+
+              theme: ThemeData(
+                brightness: Brightness.light,
+                scaffoldBackgroundColor: const Color(0xffF5F5F7),
+              ),
+
+              darkTheme: ThemeData(
+                brightness: Brightness.dark,
+                scaffoldBackgroundColor: const Color(0xff121212),
+                cardColor: const Color(0xff1E1E1E),
+              ),
+
+              themeMode: themeProvider.themeMode,
+
+              home: FutureBuilder<Widget>(
+                future: _getStartScreen(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Scaffold(
+                      body: Center(child: Text("Something went wrong")),
+                    );
+                  }
+
+                  return snapshot.data ?? const SplashScreen();
+                },
+              ),
+            );
+          },
         );
       },
     );

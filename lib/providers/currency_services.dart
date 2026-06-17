@@ -110,30 +110,167 @@ class CurrencyService {
     return currencyNotifier.value;
   }
 
+  // static String getCurrencySymbol(String currency) {
+  //   switch (currency) {
+  //     // Major
+  //     case "USD":
+  //       return "\$";
+  //     case "EUR":
+  //       return "€";
+  //     case "GBP":
+  //       return "£";
+  //     case "PKR":
+  //       return "Rs";
+  //     case "INR":
+  //       return "₹";
+  //     case "AED":
+  //       return "د.إ";
+  //     case "SAR":
+  //       return "﷼";
+  //     case "JPY":
+  //       return "¥";
+  //     case "CNY":
+  //       return "¥";
+  //     case "CAD":
+  //       return "C\$";
+  //     case "AUD":
+  //       return "A\$";
+  //     case "CHF":
+  //       return "CHF";
+  //     case "SGD":
+  //       return "S\$";
+  //     case "MYR":
+  //       return "RM";
+  //     case "IDR":
+  //       return "Rp";
+  //     case "KRW":
+  //       return "₩";
+  //     case "THB":
+  //       return "฿";
+  //     case "NGN":
+  //       return "₦";
+  //     case "ZAR":
+  //       return "R";
+  //     case "EGP":
+  //       return "E£";
+  //     case "TRY":
+  //       return "₺";
+  //     case "RUB":
+  //       return "₽";
+  //     case "BDT":
+  //       return "৳";
+  //     case "LKR":
+  //       return "Rs";
+  //     case "NPR":
+  //       return "Rs";
+  //     case "KWD":
+  //       return "KD";
+  //     case "QAR":
+  //       return "QR";
+  //     case "BHD":
+  //       return "BD";
+  //     case "OMR":
+  //       return "﷼";
+
+  //     default:
+  //       return currency;
+  //   }
+  // }
+  static const Map<String, String> _currencySymbols = {
+    // ================= Asia =================
+    "PKR": "Rs",
+    "INR": "₹",
+    "CNY": "¥",
+    "JPY": "¥",
+    "KRW": "₩",
+    "BDT": "৳",
+    "LKR": "Rs",
+    "NPR": "Rs",
+    "AFN": "؋",
+    "MMK": "K",
+    "THB": "฿",
+    "MYR": "RM",
+    "SGD": "S\$",
+    "IDR": "Rp",
+    "PHP": "₱",
+    "VND": "₫",
+    "KHR": "៛",
+    "LAK": "₭",
+
+    // ================= Middle East =================
+    "AED": "د.إ",
+    "SAR": "﷼",
+    "QAR": "QR",
+    "KWD": "KD",
+    "BHD": "BD",
+    "OMR": "﷼",
+    "ILS": "₪",
+    "JOD": "JD",
+    "LBP": "L£",
+    "YER": "﷼",
+    "IQD": "IQD",
+    "IRR": "﷼",
+
+    // ================= Europe =================
+    "EUR": "€",
+    "GBP": "£",
+    "CHF": "CHF",
+    "SEK": "kr",
+    "NOK": "kr",
+    "DKK": "kr",
+    "ISK": "kr",
+    "PLN": "zł",
+    "CZK": "Kč",
+    "HUF": "Ft",
+    "RON": "lei",
+    "BGN": "лв",
+    "HRK": "kn",
+    "UAH": "₴",
+    "RUB": "₽",
+
+    // ================= North America =================
+    "USD": "\$",
+    "CAD": "C\$",
+    "MXN": "\$",
+
+    // ================= South America =================
+    "BRL": "R\$",
+    "ARS": "\$",
+    "CLP": "\$",
+    "COP": "\$",
+    "PEN": "S/",
+    "UYU": "\$U",
+    "BOB": "Bs",
+    "PYG": "₲",
+    "VES": "Bs",
+
+    // ================= Africa =================
+    "ZAR": "R",
+    "NGN": "₦",
+    "EGP": "E£",
+    "KES": "KSh",
+    "GHS": "₵",
+    "MAD": "DH",
+    "DZD": "DA",
+    "TND": "DT",
+    "ETB": "Br",
+    "UGX": "USh",
+    "TZS": "TSh",
+    "XOF": "CFA",
+    "XAF": "FCFA",
+
+    // ================= Oceania =================
+    "AUD": "A\$",
+    "NZD": "NZ\$",
+    "FJD": "FJ\$",
+
+    // ================= Crypto (optional) =================
+    "BTC": "₿",
+    "ETH": "Ξ",
+    "USDT": "₮",
+  };
+
   static String getCurrencySymbol(String currency) {
-    switch (currency) {
-      case "USD":
-        return "\$";
-      case "EUR":
-        return "€";
-      case "GBP":
-        return "£";
-      case "PKR":
-        return "Rs";
-      case "INR":
-        return "₹";
-      case "AED":
-        return "د.إ";
-      case "SAR":
-        return "﷼";
-      case "JPY":
-        return "¥";
-      case "CAD":
-        return "C\$";
-      case "AUD":
-        return "A\$";
-      default:
-        return currency;
-    }
+    return _currencySymbols[currency] ?? currency;
   }
 }

@@ -614,7 +614,308 @@
 //     );
 //   }
 // }
+//5454454544545445445454545454545444545445544454454545454545454545454545454545445445
+// import 'package:expense_tracker/providers/currency_services.dart';
+// import 'package:expense_tracker/providers/income_service.dart';
+// import 'package:expense_tracker/screens/home_screen.dart';
+// import 'package:flutter/material.dart';
+// import 'package:expense_tracker/models/user_profile_model.dart';
+// import 'package:expense_tracker/providers/profile_service.dart';
 
+// class ProfileScreen extends StatefulWidget {
+//   const ProfileScreen({super.key});
+
+//   @override
+//   State<ProfileScreen> createState() => _ProfileScreenState();
+// }
+
+// class _ProfileScreenState extends State<ProfileScreen> {
+//   final nameController = TextEditingController();
+//   final phoneController = TextEditingController();
+//   final addressController = TextEditingController();
+//   final incomeController = TextEditingController();
+//   final occupationController = TextEditingController();
+
+//   bool isLoading = false;
+//   bool isEditing = false;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     loadProfile();
+//     // CurrencyService.loadCurrency(); // 🔥 important
+//   }
+
+//   Future<void> loadProfile() async {
+//     final profile = await ProfileService.getProfile();
+
+//     if (profile == null) return;
+
+//     setState(() {
+//       nameController.text = profile.name;
+//       phoneController.text = profile.phone;
+//       addressController.text = profile.address;
+//       incomeController.text = profile.monthlyIncome.toString();
+//       occupationController.text = profile.occupation;
+//     });
+//   }
+
+//   Future<void> saveProfile(String currency) async {
+//     setState(() => isLoading = true);
+
+//     final income = double.tryParse(incomeController.text) ?? 0;
+
+//     final profile = UserProfileModel(
+//       name: nameController.text.trim(),
+//       phone: phoneController.text.trim(),
+//       address: addressController.text.trim(),
+//       monthlyIncome: income,
+//       occupation: occupationController.text.trim(),
+//       currency: currency,
+//     );
+
+//     await ProfileService.saveProfile(profile);
+
+//     await IncomeService().addIncome(income);
+
+//     await CurrencyService.setCurrency(currency); // 🔥 sync globally
+
+//     setState(() {
+//       isLoading = false;
+//       isEditing = false;
+//     });
+
+//     if (!mounted) return;
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       const SnackBar(content: Text("Profile Updated Successfully")),
+//     );
+
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (context) => const HomeScreen()),
+//     );
+//   }
+
+//   Widget _infoTile({
+//     required String title,
+//     required TextEditingController controller,
+//     required IconData icon,
+//     TextInputType? keyboardType,
+//   }) {
+//     return Container(
+//       margin: const EdgeInsets.only(bottom: 12),
+//       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+//       decoration: BoxDecoration(
+//         color: const Color(0xFFF5F6F8),
+//         borderRadius: BorderRadius.circular(14),
+//       ),
+//       child: isEditing
+//           ? TextFormField(
+//               controller: controller,
+//               keyboardType: keyboardType,
+//               decoration: InputDecoration(
+//                 prefixIcon: Icon(icon),
+//                 labelText: title,
+//                 border: InputBorder.none,
+//               ),
+//             )
+//           : Row(
+//               children: [
+//                 Icon(icon, color: Colors.grey.shade700, size: 24),
+//                 const SizedBox(width: 12),
+//                 Expanded(
+//                   flex: 3,
+//                   child: Text(
+//                     title,
+//                     style: TextStyle(
+//                       fontSize: 18,
+//                       color: Colors.grey.shade700,
+//                       fontWeight: FontWeight.w500,
+//                     ),
+//                   ),
+//                 ),
+//                 Expanded(
+//                   flex: 4,
+//                   child: Text(
+//                     controller.text.isEmpty ? "Not Set" : controller.text,
+//                     textAlign: TextAlign.end,
+//                     style: const TextStyle(
+//                       fontSize: 18,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                     maxLines: 2,
+//                     overflow: TextOverflow.ellipsis,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       // backgroundColor: Colors.white,
+//       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
+//       appBar: AppBar(
+//         automaticallyImplyLeading: false,
+//         title: const Text("Profile", style: TextStyle(fontWeight: FontWeight.bold)),
+//         centerTitle: true,
+//         // backgroundColor: Colors.white,
+//         // foregroundColor: Colors.black,
+//         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+//         // foregroundColor: Theme.of(context).scaffoldBackgroundColor,
+//         elevation: 0,
+//       ),
+
+//       body: ValueListenableBuilder<String>(
+//         valueListenable: CurrencyService.currencyNotifier,
+//         builder: (context, selectedCurrency, child) {
+//           return RefreshIndicator(
+//             onRefresh: loadProfile,
+//             child: SingleChildScrollView(
+//               physics: const AlwaysScrollableScrollPhysics(),
+//               padding: const EdgeInsets.all(16),
+//               child: Column(
+//                 children: [
+//                   const CircleAvatar(
+//                     radius: 55,
+//                     backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
+//                   ),
+
+//                   const SizedBox(height: 12),
+
+//                   Text(
+//                     nameController.text.isEmpty
+//                         ? "User Name"
+//                         : nameController.text,
+//                     style: const TextStyle(
+//                       fontSize: 24,
+//                       fontWeight: FontWeight.bold,
+//                     ),
+//                   ),
+
+//                   const SizedBox(height: 30),
+
+//                   Row(
+//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                     children: [
+//                       const Text(
+//                         "Information",
+//                         style: TextStyle(
+//                           fontSize: 22,
+//                           fontWeight: FontWeight.bold,
+//                         ),
+//                       ),
+//                       IconButton(
+//                         icon: Icon(isEditing ? Icons.close : Icons.edit),
+//                         onPressed: () {
+//                           setState(() {
+//                             isEditing = !isEditing;
+//                           });
+//                         },
+//                       ),
+//                     ],
+//                   ),
+
+//                   const SizedBox(height: 15),
+
+//                   _infoTile(
+//                     title: "Full Name",
+//                     controller: nameController,
+//                     icon: Icons.person_outline,
+//                   ),
+//                   _infoTile(
+//                     title: "Phone",
+//                     controller: phoneController,
+//                     icon: Icons.phone_outlined,
+//                   ),
+//                   _infoTile(
+//                     title: "Address",
+//                     controller: addressController,
+//                     icon: Icons.location_on_outlined,
+//                   ),
+//                   _infoTile(
+//                     title: "Occupation",
+//                     controller: occupationController,
+//                     icon: Icons.work_outline,
+//                   ),
+//                   _infoTile(
+//                     title: "Monthly Income",
+//                     controller: incomeController,
+//                     icon: Icons.attach_money,
+//                     keyboardType: TextInputType.number,
+//                   ),
+
+//                   Container(
+//                     margin: const EdgeInsets.only(bottom: 12),
+//                     padding: const EdgeInsets.symmetric(
+//                       horizontal: 16,
+//                       vertical: 14,
+//                     ),
+//                     decoration: BoxDecoration(
+//                       color: const Color(0xFFF5F6F8),
+//                       borderRadius: BorderRadius.circular(14),
+//                     ),
+//                     child: Row(
+//                       children: [
+//                         Icon(
+//                           Icons.currency_exchange,
+//                           color: Colors.grey.shade700,
+//                         ),
+//                         const SizedBox(width: 12),
+//                         const Expanded(
+//                           child: Text(
+//                             "Currency",
+//                             style: TextStyle(
+//                               fontSize: 18,
+//                               fontWeight: FontWeight.w500,
+//                             ),
+//                           ),
+//                         ),
+//                         Text(
+//                           selectedCurrency,
+//                           style: const TextStyle(
+//                             fontSize: 18,
+//                             fontWeight: FontWeight.w600,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+
+//                   if (isEditing) ...[
+//                     const SizedBox(height: 25),
+//                     SizedBox(
+//                       width: double.infinity,
+//                       height: 52,
+//                       child: ElevatedButton(
+//                         onPressed: isLoading
+//                             ? null
+//                             : () => saveProfile(selectedCurrency),
+//                         style: ElevatedButton.styleFrom(
+//                           backgroundColor: Colors.black,
+//                           foregroundColor: Colors.white,
+//                         ),
+//                         child: isLoading
+//                             ? const CircularProgressIndicator(
+//                                 color: Colors.white,
+//                               )
+//                             : const Text("Save Changes"),
+//                       ),
+//                     ),
+//                   ],
+//                 ],
+//               ),
+//             ),
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
 import 'package:expense_tracker/providers/currency_services.dart';
 import 'package:expense_tracker/providers/income_service.dart';
 import 'package:expense_tracker/screens/home_screen.dart';
@@ -643,12 +944,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     loadProfile();
-    // CurrencyService.loadCurrency(); // 🔥 important
   }
 
   Future<void> loadProfile() async {
     final profile = await ProfileService.getProfile();
-
     if (profile == null) return;
 
     setState(() {
@@ -675,10 +974,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     await ProfileService.saveProfile(profile);
-
     await IncomeService().addIncome(income);
-
-    await CurrencyService.setCurrency(currency); // 🔥 sync globally
+    await CurrencyService.setCurrency(currency);
 
     setState(() {
       isLoading = false;
@@ -703,26 +1000,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon,
     TextInputType? keyboardType,
   }) {
+    final theme = Theme.of(context);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F6F8),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: isEditing
           ? TextFormField(
               controller: controller,
               keyboardType: keyboardType,
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 prefixIcon: Icon(icon),
                 labelText: title,
+                labelStyle: TextStyle(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
                 border: InputBorder.none,
               ),
             )
           : Row(
               children: [
-                Icon(icon, color: Colors.grey.shade700, size: 24),
+                Icon(
+                  icon,
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 3,
@@ -730,7 +1037,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     title,
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.grey.shade700,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -740,9 +1047,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     controller.text.isEmpty ? "Not Set" : controller.text,
                     textAlign: TextAlign.end,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -755,15 +1063,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text("Profile"),
+        title: const Text(
+          "Profile",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: theme.colorScheme.onBackground,
         elevation: 0,
       ),
 
@@ -788,9 +1101,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     nameController.text.isEmpty
                         ? "User Name"
                         : nameController.text,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onBackground,
                     ),
                   ),
 
@@ -799,15 +1113,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Information",
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onBackground,
                         ),
                       ),
                       IconButton(
                         icon: Icon(isEditing ? Icons.close : Icons.edit),
+                        color: theme.colorScheme.onBackground,
                         onPressed: () {
                           setState(() {
                             isEditing = !isEditing;
@@ -853,14 +1169,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F6F8),
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.currency_exchange,
-                          color: Colors.grey.shade700,
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
                         ),
                         const SizedBox(width: 12),
                         const Expanded(
@@ -874,9 +1190,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         Text(
                           selectedCurrency,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -893,8 +1210,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? null
                             : () => saveProfile(selectedCurrency),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                         ),
                         child: isLoading
                             ? const CircularProgressIndicator(
