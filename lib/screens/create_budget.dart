@@ -123,7 +123,6 @@
 //     );
 //   }
 // }
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/screens/budgets_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -151,13 +150,12 @@ class _NewBudgetScreenState extends State<NewBudgetScreen> {
     "Bills",
     "Entertainment",
     "Health",
+    "Others",
   ];
 
   Future<void> saveBudget() async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user == null) return;
-
     if (amountController.text.trim().isEmpty) return;
 
     await FirebaseFirestore.instance
@@ -180,18 +178,147 @@ class _NewBudgetScreenState extends State<NewBudgetScreen> {
     );
   }
 
+  Future<void> _selectCategory() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Select Category",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+
+              ...categories.map(
+                (category) => ListTile(
+                  leading: Icon(_getCategoryIcon(category)),
+                  title: Text(category),
+                  trailing: selectedCategory == category
+                      ? const Icon(Icons.check_circle, color: Colors.teal)
+                      : null,
+                  onTap: () => Navigator.pop(context, category),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() => selectedCategory = result);
+    }
+  }
+
+  Future<void> _selectType() async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Budget Interval",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+
+              ...types.map(
+                (type) => ListTile(
+                  leading: const Icon(Icons.repeat),
+                  title: Text(type[0].toUpperCase() + type.substring(1)),
+                  trailing: selectedType == type
+                      ? const Icon(Icons.check_circle, color: Colors.teal)
+                      : null,
+                  onTap: () => Navigator.pop(context, type),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result != null) {
+      setState(() => selectedType = result);
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case "Food":
+        return Icons.restaurant;
+      case "Travel":
+        return Icons.flight;
+      case "Shopping":
+        return Icons.shopping_bag;
+      case "Bills":
+        return Icons.receipt_long;
+      case "Entertainment":
+        return Icons.movie;
+      case "Health":
+        return Icons.favorite;
+      default:
+        return Icons.category;
+    }
+  }
+
+  Widget _tile({
+    required String title,
+    required String subtitle,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        leading: SizedBox(
+          width: 38,
+          height: 38,
+          child: Container(
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.keyboard_arrow_down),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF5F5F7),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// TOP ACTIONS
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -199,45 +326,31 @@ class _NewBudgetScreenState extends State<NewBudgetScreen> {
                     onTap: () => Navigator.pop(context),
                     child: const Text(
                       "Cancel",
-                      style: TextStyle(
-                        color: Colors.teal,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      style: TextStyle(color: Colors.teal, fontSize: 18),
                     ),
                   ),
-
                   ElevatedButton(
                     onPressed: saveBudget,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal,
                       shape: const StadiumBorder(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
                     ),
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
+                    child: const Text("Save"),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 25),
+              const SizedBox(height: 20),
 
-              /// TITLE
               const Text(
                 "New Budget",
-                style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 38, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 20),
 
-              /// AMOUNT FIELD
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
@@ -247,110 +360,44 @@ class _NewBudgetScreenState extends State<NewBudgetScreen> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    // fontWeight: FontWeight.bold,
-                  ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "\$100.00",
+                    hintText: "Enter amount",
                   ),
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              /// ASSIGNMENT
               const Text(
                 "Assignment",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 12),
 
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: ListTile(
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.sell_outlined, color: Colors.white),
-                  ),
-
-                  title: const Text("Category", style: TextStyle(fontSize: 18)),
-
-                  trailing: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedCategory,
-                      icon: const Icon(Icons.chevron_right),
-                      items: categories.map((item) {
-                        return DropdownMenuItem(value: item, child: Text(item));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCategory = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ),
+              _tile(
+                title: "Category",
+                subtitle: selectedCategory,
+                icon: _getCategoryIcon(selectedCategory),
+                color: Colors.blue,
+                onTap: _selectCategory,
               ),
 
-              const SizedBox(height: 30),
-
-              /// INTERVAL
               const Text(
                 "Interval",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 12),
 
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: ListTile(
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.repeat, color: Colors.white),
-                  ),
-
-                  title: const Text("Repeat", style: TextStyle(fontSize: 18)),
-
-                  trailing: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: selectedType,
-                      icon: const Icon(Icons.chevron_right),
-                      items: types.map((item) {
-                        return DropdownMenuItem(
-                          value: item,
-                          child: Text(
-                            item[0].toUpperCase() + item.substring(1),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedType = value!;
-                        });
-                      },
-                    ),
-                  ),
-                ),
+              _tile(
+                title: "Repeat",
+                subtitle:
+                    selectedType[0].toUpperCase() + selectedType.substring(1),
+                icon: Icons.repeat,
+                color: Colors.deepPurple,
+                onTap: _selectType,
               ),
             ],
           ),
