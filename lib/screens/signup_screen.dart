@@ -47,6 +47,10 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Account created")));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
     } catch (e) {
       ScaffoldMessenger.of(
         context,

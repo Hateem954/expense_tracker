@@ -172,7 +172,7 @@ class _NewBudgetScreenState extends State<NewBudgetScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const BudgetScreen()),
     );

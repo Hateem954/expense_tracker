@@ -698,13 +698,25 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                             double.tryParse(amountController.text) ?? 0;
 
                         if (isEdit) {
-                          await service.updateExpense(doc!.id, {
-                            "amount": amount,
-                            "category": category,
-                            "paymentMethod": paymentMethod,
-                            "description": descriptionController.text,
-                            "date": date,
-                          });
+                          // await service.updateExpense(doc!.id, {
+                          //   "amount": amount,
+                          //   "category": category,
+                          //   "paymentMethod": paymentMethod,
+                          //   "description": descriptionController.text,
+                          //   "date": date,
+                          // });
+                          await service.updateExpense(
+                            doc!.id,
+                            {
+                              "amount": amount,
+                              "category": category,
+                              "paymentMethod": paymentMethod,
+                              "description": descriptionController.text,
+                              "date": date,
+                            },
+                            doc["category"],
+                            (doc["amount"] as num).toDouble(),
+                          );
                         } else {
                           await service.addExpense(
                             amount: amount,
@@ -967,13 +979,27 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
                                       onPressed: () =>
                                           _showExpenseSheet(doc: data),
                                     ),
+
+                                    // IconButton(
+                                    //   icon: const Icon(
+                                    //     Icons.delete,
+                                    //     color: Colors.red,
+                                    //   ),
+                                    //   onPressed: () {
+                                    //     service.deleteExpense(data.id);
+                                    //   },
+                                    // ),
                                     IconButton(
                                       icon: const Icon(
                                         Icons.delete,
                                         color: Colors.red,
                                       ),
                                       onPressed: () {
-                                        service.deleteExpense(data.id);
+                                        service.deleteExpense(
+                                          data.id,
+                                          data["category"],
+                                          (data["amount"] as num).toDouble(),
+                                        );
                                       },
                                     ),
                                   ],
