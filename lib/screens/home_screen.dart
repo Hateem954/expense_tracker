@@ -1422,6 +1422,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // );
 
   Widget _monthlySpendingChart() {
+    final theme = Theme.of(context);
     return Container(
       height: 250.h,
       padding: EdgeInsets.all(16.w),
@@ -1434,7 +1435,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             "Monthly Spending Trends",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16.sp,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 20.h),
           Expanded(
