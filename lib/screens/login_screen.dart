@@ -321,19 +321,58 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   /// 🔐 Fingerprint Login (FIXED)
+  // Future<void> authenticateWithBiometrics() async {
+  //   try {
+  //     bool canCheck = await auth.canCheckBiometrics;
+  //     bool isSupported = await auth.isDeviceSupported();
+
+  //     if (!canCheck || !isSupported) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Biometric not available")),
+  //       );
+  //       return;
+  //     }
+
+  //     bool authenticated = await auth.authenticate(
+  //       localizedReason: "Login using fingerprint",
+  //       options: const AuthenticationOptions(
+  //         biometricOnly: true,
+  //         stickyAuth: true,
+  //       ),
+  //     );
+
+  //     if (authenticated && mounted) {
+  //       Navigator.pushReplacement(
+  //         context,
+  //         MaterialPageRoute(builder: (_) => const SplashScreen()),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint(e.toString());
+  //   }
+  // }
+
   Future<void> authenticateWithBiometrics() async {
     try {
-      bool canCheck = await auth.canCheckBiometrics;
-      bool isSupported = await auth.isDeviceSupported();
+      final bool canCheck = await auth.canCheckBiometrics;
+      final bool isSupported = await auth.isDeviceSupported();
+      final List<BiometricType> availableBiometrics = await auth
+          .getAvailableBiometrics();
 
-      if (!canCheck || !isSupported) {
+      debugPrint("CanCheck: $canCheck");
+      debugPrint("Supported: $isSupported");
+      debugPrint("Available: $availableBiometrics");
+
+      if (!canCheck || !isSupported || availableBiometrics.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Biometric not available")),
+          const SnackBar(
+            content: Text("No fingerprint enrolled or not supported"),
+          ),
         );
         return;
       }
 
-      bool authenticated = await auth.authenticate(
+      final bool authenticated = await auth.authenticate(
         localizedReason: "Login using fingerprint",
         options: const AuthenticationOptions(
           biometricOnly: true,
@@ -344,11 +383,19 @@ class _LoginScreenState extends State<LoginScreen> {
       if (authenticated && mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const SplashScreen()),
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Authentication failed")));
       }
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("Biometric error: $e");
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
 

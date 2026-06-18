@@ -55,19 +55,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             /// Security
             _sectionTitle("Security"),
 
-            _settingsTile(
-              icon: Icons.fingerprint,
-              title: "Fingerprint Login",
-              trailing: Switch(
-                value: biometricLogin,
-                onChanged: (value) {
-                  setState(() {
-                    biometricLogin = value;
-                  });
-                },
-              ),
-            ),
-
+            // _settingsTile(
+            //   icon: Icons.fingerprint,
+            //   title: "Fingerprint Login",
+            //   trailing: Switch(
+            //     value: biometricLogin,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         biometricLogin = value;
+            //       });
+            //     },
+            //   ),
+            // ),
             const SizedBox(height: 16),
 
             /// Notifications

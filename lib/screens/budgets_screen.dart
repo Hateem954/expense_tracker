@@ -721,100 +721,196 @@ class _BudgetScreenState extends State<BudgetScreen> {
   }
 
   /// ================= BUDGET CARD =================
+  // Widget _budgetCard(
+  //   Map<String, dynamic> data,
+  //   String selectedCurrency,
+  //   BuildContext context,
+  // ) {
+  //   final theme = Theme.of(context);
+
+  //   final id = data["id"];
+  //   double amount = (data["amount"] ?? 0).toDouble();
+  //   double spent = (data["spent"] ?? 0).toDouble();
+
+  //   if (amount <= 0) amount = 1;
+
+  //   double percent = (spent / amount) * 100;
+  //   bool isOver = percent > 100;
+
+  //   double progress = percent / 100;
+  //   if (progress > 1) progress = 1;
+
+  //   final controller = _controller(id, amount);
+
+  //   return Container(
+  //     margin: const EdgeInsets.only(bottom: 12),
+  //     decoration: BoxDecoration(
+  //       color: theme.cardColor,
+  //       borderRadius: BorderRadius.circular(18),
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         ListTile(
+  //           leading: Container(
+  //             width: 46,
+  //             height: 46,
+  //             decoration: BoxDecoration(
+  //               color: theme.colorScheme.primary.withOpacity(0.2),
+  //               borderRadius: BorderRadius.circular(12),
+  //             ),
+  //             child: Icon(Icons.wallet, color: theme.colorScheme.primary),
+  //           ),
+  //           title: Text(
+  //             data["category"] ?? "",
+  //             style: theme.textTheme.titleMedium,
+  //           ),
+  //           subtitle: Text(
+  //             data["type"] ?? "",
+  //             style: theme.textTheme.bodySmall,
+  //           ),
+
+  //           trailing: isEditMode
+  //               ? SizedBox(
+  //                   width: 80,
+  //                   child: TextField(
+  //                     controller: controller,
+  //                     keyboardType: TextInputType.number,
+  //                     textAlign: TextAlign.right,
+  //                     decoration: const InputDecoration(
+  //                       border: InputBorder.none,
+  //                     ),
+  //                   ),
+  //                 )
+  //               : Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.end,
+  //                   children: [
+  //                     Text(
+  //                       "${percent.toStringAsFixed(1)}%",
+  //                       style: TextStyle(
+  //                         color: isOver
+  //                             ? Colors.red
+  //                             : theme.colorScheme.primary,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                     Text(
+  //                       "${CurrencyService.getCurrencySymbol(selectedCurrency)} "
+  //                       "${spent.toStringAsFixed(2)} / ${amount.toStringAsFixed(2)}",
+  //                       style: theme.textTheme.bodySmall,
+  //                     ),
+  //                   ],
+  //                 ),
+  //         ),
+
+  //         Padding(
+  //           padding: const EdgeInsets.symmetric(horizontal: 16),
+  //           child: LinearProgressIndicator(
+  //             value: progress,
+  //             minHeight: 8,
+  //             backgroundColor: theme.dividerColor,
+  //             color: isOver ? Colors.red : theme.colorScheme.primary,
+  //           ),
+  //         ),
+
+  //         const SizedBox(height: 12),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _budgetCard(
     Map<String, dynamic> data,
     String selectedCurrency,
     BuildContext context,
   ) {
     final theme = Theme.of(context);
-
     final id = data["id"];
+
     double amount = (data["amount"] ?? 0).toDouble();
-    double spent = (data["spent"] ?? 0).toDouble();
+    final category = data["category"] ?? "";
 
     if (amount <= 0) amount = 1;
 
-    double percent = (spent / amount) * 100;
-    bool isOver = percent > 100;
-
-    double progress = percent / 100;
-    if (progress > 1) progress = 1;
-
     final controller = _controller(id, amount);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.wallet, color: theme.colorScheme.primary),
-            ),
-            title: Text(
-              data["category"] ?? "",
-              style: theme.textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              data["type"] ?? "",
-              style: theme.textTheme.bodySmall,
-            ),
+    return FutureBuilder<double>(
+      future: getSpent(category),
+      builder: (context, snapshot) {
+        double spent = snapshot.data ?? 0;
 
-            trailing: isEditMode
-                ? SizedBox(
-                    width: 80,
-                    child: TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.right,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "${percent.toStringAsFixed(1)}%",
-                        style: TextStyle(
-                          color: isOver
-                              ? Colors.red
-                              : theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+        double percent = (spent / amount) * 100;
+        bool isOver = percent > 100;
+
+        double progress = percent / 100;
+        if (progress > 1) progress = 1;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                title: Text(category),
+                subtitle: Text(data["type"] ?? ""),
+
+                trailing: isEditMode
+                    ? SizedBox(
+                        width: 80,
+                        child: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.right,
                         ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "${percent.toStringAsFixed(1)}%",
+                            style: TextStyle(
+                              color: isOver ? Colors.red : Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text("$spent / $amount"),
+                        ],
                       ),
-                      Text(
-                        "${CurrencyService.getCurrencySymbol(selectedCurrency)} "
-                        "${spent.toStringAsFixed(2)} / ${amount.toStringAsFixed(2)}",
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-          ),
+              ),
 
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: theme.dividerColor,
-              color: isOver ? Colors.red : theme.colorScheme.primary,
-            ),
-          ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  color: isOver ? Colors.red : Colors.green,
+                ),
+              ),
 
-          const SizedBox(height: 12),
-        ],
-      ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
     );
+  }
+
+  Future<double> getSpent(String category) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .collection("expenses")
+        .where("category", isEqualTo: category)
+        .get();
+
+    double total = 0;
+
+    for (var doc in snapshot.docs) {
+      total += (doc["amount"] ?? 0).toDouble();
+    }
+
+    return total;
   }
 }
