@@ -810,12 +810,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String userName = "Loading...";
   double totalIncome = 0;
+  double totalExpense = 0;
+  double totalBalance = 0;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
     _loadUserData();
+    _loadExpenseData();
   }
 
   @override
@@ -955,7 +958,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedBox(height: 25.h),
 
-                  _balanceCard(selectedCurrency),
+                  // _balanceCard(selectedCurrency),
+                  StreamBuilder<double>(
+                    stream: getTotalExpenseStream(),
+                    builder: (context, snapshot) {
+                      final expense = snapshot.data ?? 0;
+
+                      final balance = totalIncome - expense;
+
+                      return _balanceCard(selectedCurrency, balance, expense);
+                    },
+                  ),
 
                   SizedBox(height: 25.h),
 
@@ -970,36 +983,58 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedBox(height: 15.h),
 
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _overviewCard(
-                          icon: Icons.arrow_downward,
-                          color: Colors.green,
-                          title: "Income",
-                          percentage: "+24%",
-                          amount:
-                              "${CurrencyService.getCurrencySymbol(selectedCurrency)} 50000",
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: _overviewCard(
-                          icon: Icons.arrow_upward,
-                          color: Colors.orange,
-                          title: "Expense",
-                          percentage: "-42%",
-                          amount:
-                              "${CurrencyService.getCurrencySymbol(selectedCurrency)} 20000",
-                        ),
-                      ),
-                    ],
+                  StreamBuilder<Map<String, double>>(
+                    stream: getDashboardData(),
+                    builder: (context, snapshot) {
+                      final data =
+                          snapshot.data ??
+                          {"income": 0, "expense": 0, "saving": 0};
+
+                      final symbol = CurrencyService.getCurrencySymbol(
+                        selectedCurrency,
+                      );
+
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _overviewCard(
+                              icon: Icons.arrow_downward,
+                              color: Colors.green,
+                              title: "Income",
+                              percentage: "",
+                              amount:
+                                  "$symbol ${data["income"]!.toStringAsFixed(2)}",
+                            ),
+                          ),
+
+                          SizedBox(width: 12.w),
+
+                          Expanded(
+                            child: _overviewCard(
+                              icon: Icons.arrow_upward,
+                              color: Colors.red,
+                              title: "Expense",
+                              percentage: "",
+                              amount:
+                                  "$symbol ${data["expense"]!.toStringAsFixed(2)}",
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
 
                   SizedBox(height: 15.h),
 
-                  _savingsCard(selectedCurrency),
+                  // _savingsCard(selectedCurrency),
+                  StreamBuilder<Map<String, double>>(
+                    stream: getDashboardData(),
+                    builder: (context, snapshot) {
+                      final saving = snapshot.data?["saving"] ?? 0;
 
+                      return _savingsCard(selectedCurrency, saving);
+                    },
+                  ),
                   SizedBox(height: 30.h),
 
                   Text(
@@ -1021,6 +1056,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedBox(height: 30.h),
 
+                  // Text(
+                  //   "Recent Transactions",
+                  //   style: TextStyle(
+                  //     fontSize: 24.sp,
+                  //     fontWeight: FontWeight.bold,
+                  //     color: theme.colorScheme.onBackground,
+                  //   ),
+                  // ),
+
+                  // SizedBox(height: 15.h),
+
+                  // _transactionTile(
+                  //   title: "Dribbble Pro",
+                  //   date: "18 Sep 2024",
+                  //   amount:
+                  //       "${CurrencyService.getCurrencySymbol(selectedCurrency)} -145",
+                  //   icon: Icons.design_services,
+                  // ),
+
+                  // _transactionTile(
+                  //   title: "Figma",
+                  //   date: "14 Sep 2024",
+                  //   amount:
+                  //       "${CurrencyService.getCurrencySymbol(selectedCurrency)} -46",
+                  //   icon: Icons.brush,
+                  // ),
                   Text(
                     "Recent Transactions",
                     style: TextStyle(
@@ -1032,20 +1093,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   SizedBox(height: 15.h),
 
-                  _transactionTile(
-                    title: "Dribbble Pro",
-                    date: "18 Sep 2024",
-                    amount:
-                        "${CurrencyService.getCurrencySymbol(selectedCurrency)} -145",
-                    icon: Icons.design_services,
-                  ),
+                  StreamBuilder<List<QueryDocumentSnapshot>>(
+                    stream: getRecentExpensesStream(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                  _transactionTile(
-                    title: "Figma",
-                    date: "14 Sep 2024",
-                    amount:
-                        "${CurrencyService.getCurrencySymbol(selectedCurrency)} -46",
-                    icon: Icons.brush,
+                      final docs = snapshot.data!;
+
+                      if (docs.isEmpty) {
+                        return const Text("No recent transactions");
+                      }
+
+                      final symbol = CurrencyService.getCurrencySymbol(
+                        selectedCurrency,
+                      );
+
+                      return Column(
+                        children: docs.map((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+
+                          final amount = (data["amount"] as num).toDouble();
+                          final category = data["category"] ?? "Other";
+                          final description = data["description"] ?? "";
+                          final timestamp = data["date"] as Timestamp?;
+                          final date = timestamp != null
+                              ? timestamp.toDate()
+                              : DateTime.now();
+
+                          return _transactionTile(
+                            title: category,
+                            date: "${date.day}/${date.month}/${date.year}",
+                            amount: "$symbol -${amount.toStringAsFixed(2)}",
+                            icon: getCategoryIcon(category),
+                          );
+                        }).toList(),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -1056,6 +1141,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // monthy expense get for the graph
+  Stream<List<double>> getMonthlyExpensesStream() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value(List.filled(12, 0));
+    }
+
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .snapshots()
+        .map((snapshot) {
+          List<double> monthlyTotals = List.filled(12, 0);
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+
+            double amount = (data["amount"] as num).toDouble();
+
+            Timestamp timestamp = data["date"];
+            DateTime date = timestamp.toDate();
+
+            monthlyTotals[date.month - 1] += amount;
+          }
+
+          return monthlyTotals;
+        });
+  }
+
+  // menu ittems
   Widget _menuItem(
     IconData icon,
     String title, {
@@ -1095,7 +1212,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _balanceCard(String currency) {
+  Widget _balanceCard(String currency, double balance, double expense) {
+    final symbol = CurrencyService.getCurrencySymbol(currency);
+
     return Container(
       width: double.infinity,
       height: 220.h,
@@ -1110,8 +1229,7 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            // "₹54,800",
-            "${CurrencyService.getCurrencySymbol(currency)} $totalIncome",
+            "$symbol ${balance.toStringAsFixed(2)}",
             style: TextStyle(
               color: Colors.white,
               fontSize: 34.sp,
@@ -1119,21 +1237,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Text(
-          //   "${getCurrencySymbol(selectedCurrency)}54,800",
-          //   style: TextStyle(
           SizedBox(height: 5.h),
 
           Text(
-            "Balance",
+            "Available Balance",
             style: TextStyle(color: Colors.white70, fontSize: 16.sp),
           ),
 
-          SizedBox(height: 40.h),
+          SizedBox(height: 20.h),
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.r),
-            child: LinearProgressIndicator(value: 0.35, minHeight: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Income", style: TextStyle(color: Colors.white70)),
+                  Text(
+                    "$symbol ${totalIncome.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                      color: Colors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    "Expenses",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    "$symbol ${expense.toStringAsFixed(2)}",
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           const Spacer(),
@@ -1145,39 +1291,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 "**** **** 402",
                 style: TextStyle(color: Colors.white, fontSize: 18.sp),
               ),
-              const Icon(Icons.credit_card, color: Colors.orange, size: 35),
+              const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.orange,
+                size: 35,
+              ),
             ],
           ),
         ],
       ),
     );
   }
-
   // ================= SAVINGS =================
-  // Widget _savingsCard(String currency) {
-  //   return Container(
-  //     padding: EdgeInsets.all(18.w),
-  //     decoration: BoxDecoration(
-  //       color: Theme.of(context).colorScheme.surface,
-  //       borderRadius: BorderRadius.circular(20.r),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         const CircleAvatar(
-  //           backgroundColor: Colors.blue,
-  //           child: Icon(Icons.savings, color: Colors.white),
-  //         ),
-  //         SizedBox(width: 15.w),
-  //         Text(
-  //           "${CurrencyService.getCurrencySymbol(currency)} 30000",
-  //           style: const TextStyle(fontWeight: FontWeight.bold),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
-  Widget _savingsCard(String currency) {
+  Widget _savingsCard(String currency, double saving) {
     return Container(
       padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(
@@ -1190,13 +1317,17 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Colors.blue.withOpacity(.15),
             child: const Icon(Icons.savings, color: Colors.blue),
           ),
+
           SizedBox(width: 15.w),
+
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text("Savings", style: TextStyle(fontSize: 16.sp)),
+
               Text(
-                "${CurrencyService.getCurrencySymbol(currency)} 30000",
+                "${CurrencyService.getCurrencySymbol(currency)} "
+                "${saving.toStringAsFixed(2)}",
                 style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.bold),
               ),
             ],
@@ -1204,6 +1335,30 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // get totla expense
+  Stream<double> getTotalExpenseStream() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value(0);
+    }
+
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .snapshots()
+        .map((snapshot) {
+          double total = 0;
+
+          for (var doc in snapshot.docs) {
+            total += (doc["amount"] as num).toDouble();
+          }
+
+          return total;
+        });
   }
 
   // ================= NAV ITEM =================
@@ -1249,6 +1404,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _refreshHome() async {
     await _loadUserName();
     await _loadUserData();
+    await _loadExpenseData();
   }
 
   Future<void> _loadUserName() async {
@@ -1267,6 +1423,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
+
     if (user == null) return;
 
     final doc = await FirebaseFirestore.instance
@@ -1275,8 +1432,10 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
 
     if (doc.exists) {
+      totalIncome = (doc.data()?["monthlyIncome"] ?? 0).toDouble();
+
       setState(() {
-        totalIncome = (doc.data()?["monthlyIncome"] ?? 0).toDouble();
+        totalBalance = totalIncome - totalExpense;
       });
     }
   }
@@ -1311,9 +1470,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // _menuItem(Icons.person, "Profile"),
-                    // _menuItem(Icons.account_balance_wallet, "Switch Account"),
-                    // _menuItem(Icons.currency_exchange, "Currency"),
                     _menuItem(
                       Icons.currency_exchange,
                       "Currency",
@@ -1400,120 +1556,360 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           CircleAvatar(
             backgroundColor: color.withOpacity(.2),
-            child: Icon(icon),
+            child: Icon(icon, color: color),
           ),
-          Text(percentage, style: TextStyle(color: color)),
-          Text(amount),
+
+          SizedBox(height: 10.h),
+
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+          ),
+
+          SizedBox(height: 5.h),
+
+          Text(
+            amount,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 15.sp,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // Widget _monthlySpendingChart() => Container(
-  //   height: 250.h,
-  //   color: Theme.of(context).colorScheme.surface,
-  //   child: const Center(child: Text("Chart")),
-  // );
-
-  // Widget _categoryChart() => Container(
-  //   height: 250.h,
-  //   color: Theme.of(context).colorScheme.surface,
-  //   child: const Center(child: Text("Pie")),
-  // );
-
   Widget _monthlySpendingChart() {
-    final theme = Theme.of(context);
-    return Container(
-      height: 250.h,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Monthly Spending Trends",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.sp,
-              color: theme.colorScheme.onSurface,
-            ),
+    return StreamBuilder<List<double>>(
+      stream: getMonthlyExpensesStream(),
+      builder: (context, snapshot) {
+        final monthlyData = snapshot.data ?? List.filled(12, 0);
+
+        return Container(
+          height: 250.h,
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20.r),
           ),
-          SizedBox(height: 20.h),
-          Expanded(
-            child: BarChart(
-              BarChartData(
-                borderData: FlBorderData(show: false),
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(show: false),
-                barGroups: [
-                  BarChartGroupData(
-                    x: 0,
-                    barRods: [BarChartRodData(toY: 4000)],
-                  ),
-                  BarChartGroupData(
-                    x: 1,
-                    barRods: [BarChartRodData(toY: 7000)],
-                  ),
-                  BarChartGroupData(
-                    x: 2,
-                    barRods: [BarChartRodData(toY: 5500)],
-                  ),
-                  BarChartGroupData(
-                    x: 3,
-                    barRods: [BarChartRodData(toY: 9000)],
-                  ),
-                ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Monthly Spending Trends",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
               ),
-            ),
+
+              SizedBox(height: 20.h),
+
+              Expanded(
+                child: BarChart(
+                  BarChartData(
+                    borderData: FlBorderData(show: false),
+                    gridData: FlGridData(show: true),
+                    alignment: BarChartAlignment.spaceAround,
+
+                    titlesData: FlTitlesData(
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            const months = [
+                              "J",
+                              "F",
+                              "M",
+                              "A",
+                              "M",
+                              "J",
+                              "J",
+                              "A",
+                              "S",
+                              "O",
+                              "N",
+                              "D",
+                            ];
+
+                            return Text(
+                              months[value.toInt()],
+                              style: const TextStyle(fontSize: 10),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    barGroups: List.generate(
+                      12,
+                      (index) => BarChartGroupData(
+                        x: index,
+                        barRods: [
+                          BarChartRodData(
+                            toY: monthlyData[index],
+                            width: 14,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  // get coategotry exense stream for pie chart
+  Stream<Map<String, double>> getCategoryExpensesStream() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value({});
+    }
+
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .snapshots()
+        .map((snapshot) {
+          Map<String, double> categories = {};
+
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+
+            String category = data["category"] ?? "Other";
+
+            double amount = (data["amount"] as num).toDouble();
+
+            categories.update(
+              category,
+              (value) => value + amount,
+              ifAbsent: () => amount,
+            );
+          }
+
+          return categories;
+        });
+  }
+
+  Future<void> _loadExpenseData() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    final expenseSnapshot = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .get();
+
+    double expenseSum = 0;
+
+    for (var doc in expenseSnapshot.docs) {
+      expenseSum += (doc["amount"] as num).toDouble();
+    }
+
+    setState(() {
+      totalExpense = expenseSum;
+      totalBalance = totalIncome - totalExpense;
+    });
+  }
+
+  // get recents trrransactions
+  Stream<List<QueryDocumentSnapshot>> getRecentExpensesStream() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .orderBy("date", descending: true)
+        .limit(3)
+        .snapshots()
+        .map((snapshot) => snapshot.docs);
+  }
+
+  // transation overview
+  Stream<Map<String, double>> getDashboardData() {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value({"income": 0, "expense": 0, "saving": 0});
+    }
+
+    return FirebaseFirestore.instance
+        .collection("users")
+        .doc(user.uid)
+        .collection("expenses")
+        .snapshots()
+        .map((snapshot) {
+          double expense = 0;
+
+          for (var doc in snapshot.docs) {
+            expense += (doc["amount"] as num).toDouble();
+          }
+
+          double saving = totalIncome - expense;
+
+          return {"income": totalIncome, "expense": expense, "saving": saving};
+        });
   }
 
   Widget _categoryChart() {
-    return Container(
-      height: 250.h,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: PieChart(
-        PieChartData(
-          sections: [
-            PieChartSectionData(value: 35, color: Colors.orange, title: "Food"),
-            PieChartSectionData(value: 25, color: Colors.blue, title: "Bills"),
-            PieChartSectionData(
-              value: 20,
-              color: Colors.green,
-              title: "Shopping",
+    return StreamBuilder<Map<String, double>>(
+      stream: getCategoryExpensesStream(),
+      builder: (context, snapshot) {
+        final categories = snapshot.data ?? {};
+
+        if (categories.isEmpty) {
+          return Container(
+            height: 250.h,
+            alignment: Alignment.center,
+            child: const Text("No Expense Data"),
+          );
+        }
+
+        final colors = [
+          Colors.blue,
+          Colors.orange,
+          Colors.green,
+          Colors.purple,
+          Colors.red,
+          Colors.teal,
+          Colors.pink,
+        ];
+
+        return Container(
+          height: 250.h,
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: PieChart(
+            PieChartData(
+              sections: categories.entries.toList().asMap().entries.map((
+                entry,
+              ) {
+                int index = entry.key;
+
+                String category = entry.value.key;
+
+                double amount = entry.value.value;
+
+                return PieChartSectionData(
+                  value: amount,
+                  title: category,
+                  radius: 70,
+                  color: colors[index % colors.length],
+                );
+              }).toList(),
             ),
-            PieChartSectionData(
-              value: 20,
-              color: Colors.purple,
-              title: "Travel",
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
+  //   Widget _transactionTile({
+  //     required String title,
+  //     required String date,
+  //     required String amount,
+  //     required IconData icon,
+  //   }) {
+  //     return ListTile(
+  //       leading: Icon(icon),
+  //       title: Text(title),
+  //       subtitle: Text(date),
+  //       trailing: Text(amount),
+  //     );
+  //   }
+  // }
   Widget _transactionTile({
     required String title,
     required String date,
     required String amount,
     required IconData icon,
   }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(date),
-      trailing: Text(amount),
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(child: Icon(icon)),
+          SizedBox(width: 12.w),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 4),
+                Text(date, style: TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+
+          Text(
+            amount,
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  IconData getCategoryIcon(String category) {
+    switch (category) {
+      case "Food":
+        return Icons.restaurant;
+
+      case "Transport":
+        return Icons.directions_car;
+
+      case "Shopping":
+        return Icons.shopping_bag;
+
+      case "Bills":
+        return Icons.receipt_long;
+
+      default:
+        return Icons.wallet;
+    }
+  }
+
+  Color getCategoryColor(String category) {
+    switch (category) {
+      case "Food":
+        return Colors.orange;
+
+      case "Transport":
+        return Colors.blue;
+
+      case "Shopping":
+        return Colors.purple;
+
+      case "Bills":
+        return Colors.red;
+
+      default:
+        return Colors.green;
+    }
   }
 }

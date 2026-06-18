@@ -130,20 +130,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 30),
 
             /// Logout
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: () {
-                  // logout code
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text("Logout", style: TextStyle(fontSize: 16)),
-              ),
-            ),
           ],
         ),
       ),
