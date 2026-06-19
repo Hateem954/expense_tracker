@@ -1,17 +1,35 @@
-# expense_tracker
 
-A Flutter project.
+1. *Splash Screen*  
+   The app starts with a clean splash screen with basic UI.
 
-## Getting Started
+2. *Authentication*  
+   - You’ll see a *Login Screen* first. Below it, there’s a *Sign Up* option.  
+   - New users need to sign up first. After successful signup, you’ll be redirected to the login screen automatically.
 
-This project is a starting point for a Flutter application.
+3. *Budget Setup*  
+   - After login, click on the *Budget* section.  
+   - First, you need to create your budgets. Tap the *“+” icon* on the top.  
+   - Enter the *amount* and select a *category* like Shopping, Food, Travel, Bills, Entertainment, Health, or Others.  
+   - Set the *repeat cycle* - Monthly, Weekly, or Yearly.  
+   - Save it. You can add multiple budgets for different categories this way.
 
-A few resources to get you started if this is your first Flutter project:
+4. *Adding Expenses*  
+   - Tap the *“+” icon* again to add an expense.  
+   - Enter the expense details like where you spent and the amount.  
+   - The app will automatically deduct it from the relevant budget and update your balance.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+5. *Income Tracking*  
+   - On the *second last icon* in the bottom nav, you’ll find the *Income* section.  
+   - It shows all income you’ve added, with dates, and your current total income.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# expense_tracker
+6. *Home Dashboard*  
+   - The *Home Screen* shows your total *Income*, total *Expenses*, and remaining *Savings*.  
+   - It also displays your *last 3 transactions* for quick access.
+
+7. *Analytics Dashboard*  
+   - There’s a dedicated *Analytics* section that visualizes your expenses as graphs/charts so you can track spending patterns easily.
+8. *To change the currency* 
+   -  Tap the currency icon > Currency page opens > Select any currency from the list to switch.
+
+You’ll also find Settings option below the currency list where you can enable other features.
+In short, this app helps you create budgets, track expenses, monitor income, view savings, and analyze spending - all in one place.
